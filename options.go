@@ -1,6 +1,9 @@
 package consumer
 
-import "github.com/aws/aws-sdk-go/service/kinesis/kinesisiface"
+import (
+	"github.com/aws/aws-sdk-go/service/kinesis"
+	"github.com/aws/aws-sdk-go/service/kinesis/kinesisiface"
+)
 
 // Option is used to override defaults when creating a new Consumer
 type Option func(*Consumer)
@@ -37,5 +40,12 @@ func WithClient(client kinesisiface.KinesisAPI) Option {
 func WithShardIteratorType(t string) Option {
 	return func(c *Consumer) {
 		c.initialShardIteratorType = t
+	}
+}
+
+// WithGroup overrides the group for the consumer
+func WithGroup(listShards func(ksis kinesisiface.KinesisAPI, streamName string) ([]*kinesis.Shard, error)) Option {
+	return func(c *Consumer) {
+		c.group = NewAllGroup(c.client, c.checkpoint, c.streamName, c.logger, listShards)
 	}
 }
